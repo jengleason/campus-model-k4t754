@@ -1,0 +1,811 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Mora Campus Cash Model</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Archivo:wght@400;500;600;700&display=swap">
+<style>
+/* ---------- tokens: light (bare :root) ---------- */
+:root{
+  --page:#f9f9f7; --surface:#fcfcfb; --panel:#f2f1ec;
+  --ink:#0b0b0b; --ink2:#52514e; --muted:#898781;
+  --grid:#e1e0d9; --axis:#c3c2b7; --ring:rgba(11,11,11,.10);
+  --pine:#1d5c45; --pine-ink:#ffffff; --pine-soft:rgba(29,92,69,.09);
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a;
+  --pos:#2a78d6; --neg:#e34948;
+  --pos-wash:rgba(42,120,214,.12); --neg-wash:rgba(227,73,72,.12);
+  --good:#006300; --bad:#d03b3b;
+  --st-good:#0ca30c; --st-warn:#fab219; --st-serious:#ec835a; --st-crit:#d03b3b;
+  --tip-bg:#0b0b0b; --tip-ink:#fcfcfb;
+}
+/* ---------- dark: OS preference (not overridden by explicit light) ---------- */
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --page:#0d0d0d; --surface:#1a1a19; --panel:#222220;
+    --ink:#ffffff; --ink2:#c3c2b7; --muted:#898781;
+    --grid:#2c2c2a; --axis:#383835; --ring:rgba(255,255,255,.10);
+    --pine:#2e8a68; --pine-ink:#06130e; --pine-soft:rgba(46,138,104,.16);
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70;
+    --pos:#3987e5; --neg:#e66767;
+    --pos-wash:rgba(57,135,229,.18); --neg-wash:rgba(230,103,103,.18);
+    --good:#0ca30c; --bad:#e66767;
+    --tip-bg:#fcfcfb; --tip-ink:#0b0b0b;
+  }
+}
+/* ---------- dark: explicit toggle ---------- */
+:root[data-theme="dark"]{
+  --page:#0d0d0d; --surface:#1a1a19; --panel:#222220;
+  --ink:#ffffff; --ink2:#c3c2b7; --muted:#898781;
+  --grid:#2c2c2a; --axis:#383835; --ring:rgba(255,255,255,.10);
+  --pine:#2e8a68; --pine-ink:#06130e; --pine-soft:rgba(46,138,104,.16);
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70;
+  --pos:#3987e5; --neg:#e66767;
+  --pos-wash:rgba(57,135,229,.18); --neg-wash:rgba(230,103,103,.18);
+  --good:#0ca30c; --bad:#e66767;
+  --tip-bg:#fcfcfb; --tip-ink:#0b0b0b;
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--page); color:var(--ink);
+  font-family:"Archivo",system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:15px; line-height:1.5;
+}
+h1,h2,h3{font-family:"Bricolage Grotesque","Archivo",system-ui,sans-serif; text-wrap:balance; margin:0}
+button{font:inherit; color:inherit}
+:focus-visible{outline:2px solid var(--pine); outline-offset:2px; border-radius:4px}
+
+/* ---------- masthead ---------- */
+.mast{background:var(--pine); color:var(--pine-ink); padding:26px 24px 22px}
+.mast-inner{max-width:1240px; margin:0 auto}
+.mast .kicker{font-size:11px; letter-spacing:.14em; text-transform:uppercase; opacity:.82; font-weight:600}
+.mast h1{font-size:clamp(26px,4vw,40px); font-weight:700; line-height:1.08; margin-top:4px}
+.mast .sub{margin-top:8px; font-size:13.5px; opacity:.88; max-width:64ch}
+
+/* ---------- shell ---------- */
+.shell{max-width:1240px; margin:0 auto; padding:20px 24px 64px; display:grid; grid-template-columns:288px 1fr; gap:22px; align-items:start}
+@media (max-width:980px){ .shell{grid-template-columns:1fr} .rail{position:static !important} }
+
+/* ---------- lever rail ---------- */
+.rail{position:sticky; top:14px; background:var(--surface); border:1px solid var(--ring); border-radius:10px; padding:16px}
+.rail h2{font-size:14px; font-weight:700; letter-spacing:.02em}
+.rail .rsub{font-size:12px; color:var(--muted); margin:2px 0 14px}
+.lgroup{margin-bottom:16px}
+.lgroup:last-child{margin-bottom:0}
+.llabel{font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink2); font-weight:600; margin-bottom:6px}
+.seg{display:flex; border:1px solid var(--axis); border-radius:7px; overflow:hidden}
+.seg button{flex:1; padding:7px 4px; background:var(--surface); border:none; cursor:pointer; font-size:13px; font-weight:500; color:var(--ink2); border-right:1px solid var(--axis)}
+.seg button:last-child{border-right:none}
+.seg button.on{background:var(--pine); color:var(--pine-ink); font-weight:600}
+.seg.two button{font-size:12.5px}
+.sw{display:flex; align-items:center; gap:10px; padding:7px 2px; cursor:pointer; border:none; background:none; width:100%; text-align:left; border-radius:6px}
+.sw:hover{background:var(--pine-soft)}
+.sw .track{flex:none; width:34px; height:19px; border-radius:10px; background:var(--axis); position:relative; transition:background .15s}
+.sw .knob{position:absolute; top:2px; left:2px; width:15px; height:15px; border-radius:50%; background:var(--surface); transition:left .15s}
+.sw.on .track{background:var(--pine)}
+.sw.on .knob{left:17px}
+.sw .swl{font-size:13px; line-height:1.25}
+.sw .swm{display:block; font-size:11px; color:var(--muted)}
+.sw[disabled]{opacity:.42; cursor:not-allowed}
+.rail .fine{font-size:11px; color:var(--muted); margin-top:12px; padding-top:10px; border-top:1px solid var(--grid)}
+@media (prefers-reduced-motion: reduce){ .sw .track,.sw .knob{transition:none} }
+
+/* ---------- main column ---------- */
+.main{display:flex; flex-direction:column; gap:22px; min-width:0}
+.card{background:var(--surface); border:1px solid var(--ring); border-radius:10px; padding:18px 20px}
+.card h2{font-size:18px; font-weight:700; margin-bottom:2px}
+.card .csub{font-size:12.5px; color:var(--ink2); margin:0 0 14px; max-width:78ch}
+
+/* KPI band */
+.kpis{display:grid; grid-template-columns:repeat(4,1fr); gap:12px}
+@media (max-width:760px){ .kpis{grid-template-columns:repeat(2,1fr)} }
+.kpi{background:var(--surface); border:1px solid var(--ring); border-radius:10px; padding:14px 16px}
+.kpi .kl{font-size:11.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink2); font-weight:600}
+.kpi .kv{font-family:"Bricolage Grotesque","Archivo",sans-serif; font-size:30px; font-weight:700; line-height:1.15; margin-top:3px}
+.kpi.hero .kv{font-size:36px}
+.kpi .km{font-size:11.5px; color:var(--muted); margin-top:2px}
+.kv.up{color:var(--good)} .kv.dn{color:var(--bad)}
+.kpi.hero{border-left:4px solid var(--pine)}
+
+/* charts */
+.plot{width:100%; height:auto; display:block}
+.axis-t{font-size:10.5px; fill:var(--muted); font-family:"Archivo",system-ui,sans-serif}
+.axis-t.tn{font-variant-numeric:tabular-nums}
+.leg{display:flex; gap:18px; flex-wrap:wrap; font-size:12px; color:var(--ink2); margin:2px 0 10px}
+.leg .li{display:flex; align-items:center; gap:6px}
+.leg .swatch{width:14px; height:4px; border-radius:2px}
+.leg .swatch.sq{width:10px; height:10px; border-radius:3px}
+.ann{font-size:10.5px; fill:var(--ink2); font-family:"Archivo",sans-serif}
+.tip{position:fixed; z-index:50; pointer-events:none; background:var(--tip-bg); color:var(--tip-ink); border-radius:7px; padding:9px 11px; font-size:12px; line-height:1.45; max-width:270px; box-shadow:0 4px 16px rgba(0,0,0,.25); display:none}
+.tip b{font-weight:700}
+.tip .tr{display:flex; justify-content:space-between; gap:14px; font-variant-numeric:tabular-nums}
+.tip .tr span:first-child{opacity:.75}
+
+/* options grid */
+.ogwrap{display:grid; grid-template-columns:1fr 1fr; gap:16px}
+@media (max-width:820px){ .ogwrap{grid-template-columns:1fr} }
+.og{width:100%; border-collapse:separate; border-spacing:4px; font-variant-numeric:tabular-nums}
+.og caption{font-size:12.5px; font-weight:600; color:var(--ink2); text-align:left; padding-bottom:6px}
+.og th{font-size:11.5px; color:var(--muted); font-weight:600; text-align:center; padding:2px}
+.og th.rowh{text-align:left; font-size:12px; color:var(--ink2); max-width:130px}
+.og td{text-align:center; padding:0}
+.og td button{width:100%; border:1px solid var(--ring); border-radius:7px; padding:10px 4px; cursor:pointer; font-size:13.5px; font-weight:600; background:var(--surface); font-variant-numeric:tabular-nums}
+.og td button:hover{border-color:var(--pine)}
+.og td button.sel{outline:2px solid var(--pine); outline-offset:1px}
+.og td button .per{display:block; font-size:10px; font-weight:500; color:var(--muted)}
+
+/* tables */
+details.tbl{margin-top:12px}
+details.tbl summary{cursor:pointer; font-size:12.5px; color:var(--ink2); font-weight:600}
+.dtable{width:100%; border-collapse:collapse; margin-top:10px; font-size:12px; font-variant-numeric:tabular-nums}
+.dtable th{ text-align:right; color:var(--muted); font-weight:600; padding:4px 8px; border-bottom:1px solid var(--grid)}
+.dtable th:first-child,.dtable td:first-child{text-align:left}
+.dtable td{text-align:right; padding:3px 8px; border-bottom:1px solid var(--grid); color:var(--ink2)}
+.dtable td.neg{color:var(--bad)}
+.tblwrap{overflow-x:auto}
+
+/* assumptions register */
+.reg{width:100%; border-collapse:collapse; font-size:12.5px}
+.reg th{text-align:left; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); padding:6px 10px 6px 0; border-bottom:1px solid var(--grid)}
+.reg td{padding:7px 10px 7px 0; border-bottom:1px solid var(--grid); vertical-align:top}
+.reg td.val{font-variant-numeric:tabular-nums; white-space:nowrap; font-weight:600}
+.chip{display:inline-flex; align-items:center; gap:5px; font-size:10.5px; font-weight:700; letter-spacing:.04em; padding:2px 8px; border-radius:9px; white-space:nowrap}
+.chip::before{content:""; width:7px; height:7px; border-radius:50%; background:currentColor}
+.chip.realized{color:var(--good); background:rgba(12,163,12,.10)}
+.chip.decided{color:var(--s1); background:var(--pos-wash)}
+.chip.pending{color:#8a6100; background:rgba(250,178,25,.14)}
+:root[data-theme="dark"] .chip.pending{color:var(--st-warn)}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .chip.pending{color:var(--st-warn)} }
+
+.foot{max-width:1240px; margin:0 auto; padding:0 24px 40px; font-size:11.5px; color:var(--muted); line-height:1.6}
+.foot b{color:var(--ink2)}
+</style>
+</head>
+<body>
+
+
+<div class="mast">
+  <div class="mast-inner">
+    <div class="kicker">St. Clare Living Community of Mora · SNF + Assisted Living · Sep 2026 – Dec 2028</div>
+    <h1>Mora Campus Cash Model</h1>
+    <div class="sub">Flip the levers the campus actually has — the merit raise, the 2027 state reimbursement, the bed layaway, the cost packages — and watch whether it carries itself, month by month, through full debt service.</div>
+  </div>
+</div>
+
+<div class="shell">
+
+  <!-- ================= lever rail ================= -->
+  <aside class="rail" aria-label="Model levers">
+    <h2>Levers</h2>
+    <div class="rsub">Every switch reprices the whole model.</div>
+
+    <div class="lgroup">
+      <div class="llabel">Merit raise — pending, 3% likely</div>
+      <div class="seg" id="segMerit" role="group" aria-label="Merit scenario">
+        <button data-v="2">2%</button><button data-v="3" class="on">3%</button><button data-v="4">4%</button>
+      </div>
+    </div>
+
+    <div class="lgroup">
+      <div class="llabel">2027 state reimbursement (WSB)</div>
+      <div class="seg two" id="segWsb" role="group" aria-label="WSB 2027 scenario">
+        <button data-v="1" class="on">As filed · $21.93/day</button><button data-v="2">Floored · $7.40/day</button>
+      </div>
+    </div>
+
+    <div class="lgroup">
+      <div class="llabel">Likely — pending final sign-off</div>
+      <button class="sw on" id="swLayaway" aria-pressed="true"><span class="track"><span class="knob"></span></span><span class="swl">Bed layaway — 10 beds<span class="swm">$59K/yr surcharge relief from Nov ’26</span></span></button>
+      <button class="sw on" id="swParity" aria-pressed="true"><span class="track"><span class="knob"></span></span><span class="swl">AL parity bump $1/hr<span class="swm">21 AL staff · $22.9K/yr</span></span></button>
+    </div>
+
+    <div class="lgroup">
+      <div class="llabel">Cost packages (none committed yet)</div>
+      <button class="sw" id="swAgency" aria-pressed="false"><span class="track"><span class="knob"></span></span><span class="swl">Eliminate agency<span class="swm">~$125K/yr · night-LPN constraint</span></span></button>
+      <button class="sw" id="swCM" aria-pressed="false"><span class="track"><span class="knob"></span></span><span class="swl">Clinical Mgr bench 3.3 → 1.0<span class="swm">~$176K/yr · duty-log check first</span></span></button>
+      <button class="sw" id="swRS" aria-pressed="false"><span class="track"><span class="knob"></span></span><span class="swl">Full right-size (50 beds)<span class="swm">~$390K/yr · includes agency + CM</span></span></button>
+      <button class="sw" id="swHR" aria-pressed="false"><span class="track"><span class="knob"></span></span><span class="swl">Eliminate on-site HR<span class="swm">$81.8K/yr loaded · ProCare absorbs</span></span></button>
+    </div>
+
+    <div class="lgroup">
+      <div class="llabel">Optional wage levers</div>
+      <button class="sw" id="swOnetime" aria-pressed="false"><span class="track"><span class="knob"></span></span><span class="swl">One-time service recognition<span class="swm">$51.8K · $50 per service-year</span></span></button>
+      <button class="sw" id="swFloor" aria-pressed="false"><span class="track"><span class="knob"></span></span><span class="swl">Tenure-floor compression<span class="swm">$46K/yr → $62K/yr in 2027</span></span></button>
+      <button class="sw" id="swAcuity" aria-pressed="false"><span class="track"><span class="knob"></span></span><span class="swl">MDS acuity recapture<span class="swm">~$45K/yr · off until review confirms</span></span></button>
+    </div>
+
+    <div class="lgroup">
+      <div class="llabel">Capital structure</div>
+      <button class="sw on" id="swDebt" aria-pressed="true"><span class="track"><span class="knob"></span></span><span class="swl">Full debt service<span class="swm">$52.2K/mo — senior + sub + LOC</span></span></button>
+    </div>
+
+    <div class="fine">Working assumptions: 3% merit and the parity bump are modeled on but pending final sign-off. Locked: dietary Option A, private-pay rebill 100% billed / 50% collected in Q4 ’26, retro surcharge catch-up ~$134K in Nov ’26.</div>
+  </aside>
+
+  <!-- ================= main ================= -->
+  <div class="main">
+
+    <div class="kpis" aria-live="polite">
+      <div class="kpi"><div class="kl">Sep–Dec 2026 net</div><div class="kv" id="k26"></div><div class="km">after debt service, incl. retro catch-ups</div></div>
+      <div class="kpi"><div class="kl">2027 net</div><div class="kv" id="k27"></div><div class="km">the double-payment year</div></div>
+      <div class="kpi hero"><div class="kl">2028 net — the carry test</div><div class="kv" id="k28"></div><div class="km">after the 2026 WSB add-on drops off</div></div>
+      <div class="kpi"><div class="kl">Savings still needed, 2028</div><div class="kv" id="kreq"></div><div class="km" id="kreqm">to break even at these settings</div></div>
+    </div>
+
+    <div class="card">
+      <h2>Monthly cash flow</h2>
+      <p class="csub">Net cash by month after every layer — rate catch-ups, new wages, the surcharge, your levers, and debt service. The Nov ’26 spike is the Medicaid retro landing; Jan ’28 is where the 2026 wage add-on falls out of the rate.</p>
+      <svg id="chMonthly" class="plot" viewBox="0 0 960 300" role="img" aria-label="Monthly net cash flow, September 2026 through December 2028"></svg>
+      <svg id="chCum" class="plot" viewBox="0 0 960 170" role="img" aria-label="Cumulative net cash from September 2026"></svg>
+      <details class="tbl"><summary>Monthly data table</summary><div class="tblwrap"><table class="dtable" id="tblMonthly"></table></div></details>
+    </div>
+
+    <div class="card">
+      <h2>The wage money, in and out</h2>
+      <p class="csub">What the state pays for the mandated raises versus what the raises cost. 2027 pays twice (both the 2026 and 2027 add-ons ride the rate) while one wage bill runs — that surplus is temporary money. 2028 is the honest year.</p>
+      <div class="leg">
+        <span class="li"><span class="swatch" style="background:var(--s1)"></span>State WSB add-ons in</span>
+        <span class="li"><span class="swatch" style="background:var(--s2)"></span>Mandated wage cost out (incl. merit interaction)</span>
+      </div>
+      <svg id="chWsb" class="plot" viewBox="0 0 960 280" role="img" aria-label="WSB reimbursement in versus mandated wage cost out, monthly"></svg>
+    </div>
+
+    <div class="card">
+      <h2>What can we afford?</h2>
+      <p class="csub">Annual net cash after full debt service, by cut package and merit level. One-time items excluded — this is the run-rate answer. Click a cell to load it into the levers.</p>
+      <div class="ogwrap">
+        <table class="og" id="og27"><caption>2027 — flattered by the double payment</caption></table>
+        <table class="og" id="og28"><caption>2028 — the year that has to stand alone</caption></table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>2027 bridge — where the year comes from</h2>
+      <p class="csub">The buyer-facing waterfall at current settings: structural rate items first, realized pricing second, management actions last. Blue adds cash, red takes it.</p>
+      <svg id="chWf" class="plot" viewBox="0 0 960 320" role="img" aria-label="2027 cash bridge waterfall"></svg>
+    </div>
+
+    <div class="card">
+      <h2>Inside the rate increase</h2>
+      <p class="csub">The 2026 Medicaid rate rose $25.88/day (+7.4%) — but most of it is pass-through money that arrives with an obligation attached. Only $2.10/day is durable margin.</p>
+      <svg id="chStack" class="plot" viewBox="0 0 960 150" role="img" aria-label="Composition of the 2026 rate increase per resident day"></svg>
+      <div class="leg" style="margin-top:6px">
+        <span class="li"><span class="swatch sq" style="background:var(--s1)"></span>Durable margin — keeps</span>
+        <span class="li"><span class="swatch sq" style="background:var(--s2)"></span>WSB wage add-on — funds the mandated raises</span>
+        <span class="li"><span class="swatch sq" style="background:var(--s3)"></span>Surcharge offset — funds the higher bed tax</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Assumptions register</h2>
+      <p class="csub">Every number in this model, its value, and how solid it is. Yellow items are the open questions.</p>
+      <div class="tblwrap"><table class="reg" id="tblReg"></table></div>
+    </div>
+
+  </div>
+</div>
+
+<div class="foot">
+  <b>Internal working model — figures pre-audit.</b> Baseline: St. Clare FY26-prelim P&amp;L adjusted to campus operating cash (+$26.9K/mo before debt service). Rates: DHS notice IID 33001 eff. 1/1/26 (pub. 8/20/26). Wage costs: Mora Merit Backpay Model v2.4 (8/16/26 snapshot, dietary Option A, loaded). 2027 WSB: completed application 8/25/26 — 82 employees, $387.5K ÷ 17,667 resident days; floored downside per the state form’s Apply-Floor worksheet. AL rent increase measured from MatrixCare Jun–Jul 2026 (+$11.6K/mo, realized 7/1/26). Census: validated MatrixCare daily data. Mirrors Mora_Sustainability_ProForma_v1.xlsx, which remains the audit copy.
+</div>
+
+<div class="tip" id="tip"></div>
+
+<script>
+"use strict";
+/* ================= model ================= */
+const M = {
+  months: [], // {y, m, label, idx}
+  ratedays: 1240,
+  baseline: 26852,
+  durable: 2.10, wsb26: 13.61, surchOff: 10.16,
+  w27: {1: 21.93, 2: 7.40},
+  retroMA: 222629, retroMonth: 3,          // Nov-26
+  ppRebillMo: 59182*0.5/3, ppStart: 2,     // Oct–Dec 26
+  alrent: 11570,
+  acuityYr: 45000, acuityStart: 5,         // Jan-27
+  stub: {2: 65878, 3: 62363, 4: 58911},    // WSB 2026 stub 9/10–12/31, loaded
+  wsb27c: {2: 333246, 3: 318802, 4: 304493},
+  meritA: {2: 76778, 3: 115167, 4: 153556},
+  backpay: {2: 11617, 3: 17425, 4: 23233},
+  onetime: 51800, onetimeMonth: 2,
+  floorY: {2026: 46300, 2027: 62200},
+  parityY: 22900,
+  surchDelta: 16710, surchRetro: 133680, surchRetroMonth: 3,
+  layawayMo: 10*5900/12, layawayStart: 3,
+  agencyY: 125000, agencyStart: 2,
+  hrY: 81800, hrStart: 3,
+  cmY: 176000, cmStart: 3,
+  rsY: 390000, rsStart: 5,
+  dsMo: 52185,
+  stubDays: {9: 21, 10: 31, 11: 30, 12: 31} // of 113
+};
+(function(){
+  let y = 2026, m = 9, i = 1;
+  const names = ["","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  while (y < 2028 || (y === 2028 && m <= 12)){
+    M.months.push({y, m, idx: i, label: names[m] + " ’" + String(y).slice(2)});
+    m++; if (m === 13){ m = 1; y++; } i++;
+  }
+})();
+
+const S = { merit: 3, wsb: 1, layaway: true, parity: true, agency: false, cm: false, rs: false, hr: false,
+            onetime: false, floor: false, acuity: false, debt: true };
+
+function computeMonth(mo, s){
+  const {y, m, idx} = mo;
+  const w27 = M.w27[s.wsb];
+  const r = {};
+  // revenue changes vs baseline (baseline billed 2025 rates, old surcharge, pre-raise wages)
+  r.durable  = M.durable * M.ratedays;
+  r.surchOff = M.surchOff * M.ratedays;
+  r.wsb26in  = (y <= 2027) ? M.wsb26 * M.ratedays : 0;
+  r.wsb27in  = (y >= 2027) ? w27 * M.ratedays : 0;
+  r.retroMA  = (idx === M.retroMonth) ? M.retroMA : 0;
+  r.ppRebill = (idx >= M.ppStart && idx < M.ppStart + 3) ? M.ppRebillMo : 0;
+  r.alrent   = M.alrent;
+  r.acuity   = (s.acuity && idx >= M.acuityStart) ? M.acuityYr/12 : 0;
+  r.rev = r.durable + r.surchOff + r.wsb26in + r.wsb27in + r.retroMA + r.ppRebill + r.alrent + r.acuity;
+  // wages
+  r.wsbCost  = (y === 2026) ? M.stub[s.merit]/113 * (M.stubDays[m] || 0) : M.wsb27c[s.merit]/12;
+  r.merit    = M.meritA[s.merit]/12;
+  r.backpay  = (idx === 1) ? M.backpay[s.merit] : 0;
+  r.onetime  = (s.onetime && idx === M.onetimeMonth) ? M.onetime : 0;
+  r.floor    = s.floor ? (y === 2026 ? M.floorY[2026] : M.floorY[2027])/12 : 0;
+  r.parity   = s.parity ? M.parityY/12 : 0;
+  r.wages = -(r.wsbCost + r.merit + r.backpay + r.onetime + r.floor + r.parity);
+  // surcharge
+  r.surchUp   = -M.surchDelta;
+  r.surchBill = (idx === M.surchRetroMonth) ? -M.surchRetro : 0;
+  r.layaway   = (s.layaway && idx >= M.layawayStart) ? M.layawayMo : 0;
+  r.surch = r.surchUp + r.surchBill + r.layaway;
+  // cost actions (right-size supersedes agency + CM)
+  const ag = s.agency && !s.rs, cm = s.cm && !s.rs;
+  r.cuts = (ag && idx >= M.agencyStart ? M.agencyY/12 : 0)
+         + (cm && idx >= M.cmStart ? M.cmY/12 : 0)
+         + (s.rs && idx >= M.rsStart ? M.rsY/12 : 0)
+         + (s.hr && idx >= M.hrStart ? M.hrY/12 : 0);
+  r.op  = M.baseline + r.rev + r.wages + r.surch + r.cuts;
+  r.ds  = s.debt ? -M.dsMo : 0;
+  r.net = r.op + r.ds;
+  return r;
+}
+function computeAll(s){
+  const rows = M.months.map(mo => computeMonth(mo, s));
+  let c = 0;
+  rows.forEach(r => { c += r.net; r.cum = c; });
+  const yr = {2026: 0, 2027: 0, 2028: 0};
+  M.months.forEach((mo, i) => yr[mo.y] += rows[i].net);
+  return {rows, yr};
+}
+/* annual run-rate cell for the options grid (one-times excluded, debt always in) */
+function gridCell(year, merit, pkg, s){
+  const w27 = M.w27[s.wsb];
+  const rate = (year === 2027 ? M.durable + M.surchOff + M.wsb26 + w27
+                              : M.durable + M.surchOff + w27) * M.ratedays * 12;
+  const rev = M.baseline*12 + rate + M.alrent*12 + (s.acuity ? M.acuityYr : 0);
+  const surch = -M.surchDelta*12 + (s.layaway ? 59000 : 0);
+  const comp = -((s.floor ? M.floorY[2027] : 0) + (s.parity ? M.parityY : 0));
+  const wage = M.meritA[merit] + M.wsb27c[merit];
+  const cuts = pkg === 'A' ? M.agencyY : pkg === 'B' ? M.agencyY + M.cmY : pkg === 'D' ? M.agencyY + M.cmY + M.hrY : M.rsY;
+  return rev + surch + comp - wage + cuts - M.dsMo*12;
+}
+
+/* ================= formatting ================= */
+const fmtK = v => {
+  const a = Math.abs(v);
+  const s = a >= 999500 ? (a/1e6).toFixed(2) + "M" : Math.round(a/1000) + "K";
+  return (v < 0 ? "−$" : "$") + s;
+};
+const fmtF = v => (v < 0 ? "−$" : "$") + Math.abs(Math.round(v)).toLocaleString();
+const NS = "http://www.w3.org/2000/svg";
+function el(tag, attrs, parent){
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+
+/* ================= tooltip ================= */
+const tip = document.getElementById('tip');
+function showTip(html, ev){
+  tip.innerHTML = html; tip.style.display = 'block';
+  const w = tip.offsetWidth, h = tip.offsetHeight;
+  let x = ev.clientX + 14, yy = ev.clientY - h - 10;
+  if (x + w > innerWidth - 8) x = ev.clientX - w - 14;
+  if (yy < 8) yy = ev.clientY + 16;
+  tip.style.left = x + 'px'; tip.style.top = yy + 'px';
+}
+function hideTip(){ tip.style.display = 'none'; }
+
+/* ================= chart: monthly bars ================= */
+function drawMonthly(rows){
+  const svg = document.getElementById('chMonthly');
+  svg.innerHTML = '';
+  const W = 960, H = 300, L = 58, R = 12, T = 26, B = 34;
+  const pw = W - L - R, ph = H - T - B;
+  const vals = rows.map(r => r.net);
+  let lo = Math.min(0, ...vals), hi = Math.max(0, ...vals);
+  const pad = (hi - lo) * 0.08; hi += pad; lo -= pad;
+  const yv = v => T + (hi - v) / (hi - lo) * ph;
+  const n = rows.length, slot = pw / n, bw = Math.min(24, slot - 2);
+  // gridlines at clean 50K steps
+  const step = (hi - lo) > 400000 ? 100000 : 50000;
+  for (let g = Math.ceil(lo/step)*step; g <= hi; g += step){
+    const y = yv(g);
+    el('line', {x1: L, x2: W-R, y1: y, y2: y, stroke: 'var(--grid)', 'stroke-width': 1}, svg);
+    const t = el('text', {x: L-8, y: y+3.5, 'text-anchor': 'end', class: 'axis-t tn'}, svg);
+    t.textContent = g === 0 ? '0' : fmtK(g);
+  }
+  const y0 = yv(0);
+  el('line', {x1: L, x2: W-R, y1: y0, y2: y0, stroke: 'var(--axis)', 'stroke-width': 1}, svg);
+  rows.forEach((r, i) => {
+    const x = L + i*slot + (slot-bw)/2;
+    const v = r.net, yTop = Math.min(yv(v), y0), hgt = Math.max(Math.abs(yv(v) - y0), 1);
+    const up = v >= 0;
+    const rx = 4, barY = up ? yTop : y0;
+    // rounded at data end, square at baseline
+    const p = up
+      ? `M${x},${y0} L${x},${barY+rx} Q${x},${barY} ${x+rx},${barY} L${x+bw-rx},${barY} Q${x+bw},${barY} ${x+bw},${barY+rx} L${x+bw},${y0} Z`
+      : `M${x},${y0} L${x+bw},${y0} L${x+bw},${barY+hgt-rx} Q${x+bw},${barY+hgt} ${x+bw-rx},${barY+hgt} L${x+rx},${barY+hgt} Q${x},${barY+hgt} ${x},${barY+hgt-rx} Z`;
+    const bar = el('path', {d: p, fill: up ? 'var(--pos)' : 'var(--neg)'}, svg);
+    // hover hit target: full slot height
+    const hit = el('rect', {x: L+i*slot, y: T, width: slot, height: ph, fill: 'transparent'}, svg);
+    const mo = M.months[i];
+    hit.addEventListener('mousemove', ev => showTip(
+      `<b>${mo.label}</b><br>` +
+      `<div class="tr"><span>Rate &amp; revenue changes</span><span>${fmtF(r.rev)}</span></div>` +
+      `<div class="tr"><span>Wage changes</span><span>${fmtF(r.wages)}</span></div>` +
+      `<div class="tr"><span>Surcharge (net)</span><span>${fmtF(r.surch)}</span></div>` +
+      (r.cuts ? `<div class="tr"><span>Cost actions</span><span>${fmtF(r.cuts)}</span></div>` : '') +
+      `<div class="tr"><span>Baseline operations</span><span>${fmtF(M.baseline)}</span></div>` +
+      (r.ds ? `<div class="tr"><span>Debt service</span><span>${fmtF(r.ds)}</span></div>` : '') +
+      `<div class="tr" style="margin-top:4px"><span><b>Net</b></span><span><b>${fmtF(r.net)}</b></span></div>`, ev));
+    hit.addEventListener('mouseleave', hideTip);
+  });
+  // x labels: Jan + Sep-26 start
+  rows.forEach((r, i) => {
+    const mo = M.months[i];
+    if (mo.m === 1 || i === 0){
+      const t = el('text', {x: L + i*slot + slot/2, y: H-14, 'text-anchor': 'middle', class: 'axis-t'}, svg);
+      t.textContent = mo.label;
+    }
+  });
+  // annotations
+  const ann = (i, txt, dy) => {
+    const x = L + (i-1)*slot + slot/2;
+    el('line', {x1: x, x2: x, y1: T+2, y2: T+16, stroke: 'var(--muted)', 'stroke-width': 1}, svg);
+    const t = el('text', {x: Math.min(x, W-200), y: T-6+(dy||0), class: 'ann'}, svg);
+    t.textContent = txt;
+  };
+  ann(3, "Nov ’26 — Medicaid retro in, surcharge catch-up out");
+  const jan28 = M.months.findIndex(mo => mo.y === 2028 && mo.m === 1) + 1;
+  ann(jan28, "Jan ’28 — 2026 add-on drops off");
+}
+
+/* ================= chart: cumulative ================= */
+function drawCum(rows){
+  const svg = document.getElementById('chCum');
+  svg.innerHTML = '';
+  const W = 960, H = 170, L = 58, R = 12, T = 18, B = 24;
+  const pw = W - L - R, ph = H - T - B;
+  const vals = rows.map(r => r.cum);
+  let lo = Math.min(0, ...vals), hi = Math.max(0, ...vals);
+  const pad = (hi - lo) * 0.12 || 1; hi += pad; lo -= pad;
+  const yv = v => T + (hi - v)/(hi - lo)*ph;
+  const n = rows.length, slot = pw/n;
+  const xv = i => L + i*slot + slot/2;
+  const y0 = yv(0);
+  el('line', {x1: L, x2: W-R, y1: y0, y2: y0, stroke: 'var(--axis)', 'stroke-width': 1}, svg);
+  const lt = el('text', {x: L-8, y: y0+3.5, 'text-anchor': 'end', class: 'axis-t tn'}, svg); lt.textContent = '0';
+  // area wash + line
+  let dA = `M${xv(0)},${y0}`, dL = '';
+  rows.forEach((r, i) => { dA += ` L${xv(i)},${yv(r.cum)}`; dL += (i ? ' L' : 'M') + xv(i) + ',' + yv(r.cum); });
+  dA += ` L${xv(n-1)},${y0} Z`;
+  el('path', {d: dA, fill: 'var(--s1)', opacity: 0.10}, svg);
+  el('path', {d: dL, fill: 'none', stroke: 'var(--s1)', 'stroke-width': 2, 'stroke-linejoin': 'round', 'stroke-linecap': 'round'}, svg);
+  const last = rows[n-1];
+  el('circle', {cx: xv(n-1), cy: yv(last.cum), r: 4.5, fill: 'var(--s1)', stroke: 'var(--surface)', 'stroke-width': 2}, svg);
+  const t = el('text', {x: xv(n-1)-8, y: yv(last.cum) + (last.cum >= 0 ? -10 : 16), 'text-anchor': 'end', class: 'axis-t tn', style: 'font-weight:700; fill:var(--ink)'}, svg);
+  t.textContent = 'Cumulative ' + fmtK(last.cum);
+  const cap = el('text', {x: L, y: T-4, class: 'ann'}, svg);
+  cap.textContent = 'Running total of cash generated since Sep ’26';
+  // hover
+  const hit = el('rect', {x: L, y: T, width: pw, height: ph, fill: 'transparent'}, svg);
+  hit.addEventListener('mousemove', ev => {
+    const box = svg.getBoundingClientRect();
+    const px = (ev.clientX - box.left) / box.width * W;
+    const i = Math.max(0, Math.min(n-1, Math.round((px - L - slot/2)/slot)));
+    showTip(`<b>${M.months[i].label}</b><br><div class="tr"><span>Cumulative</span><span>${fmtF(rows[i].cum)}</span></div>`, ev);
+  });
+  hit.addEventListener('mouseleave', hideTip);
+}
+
+/* ================= chart: WSB in vs out ================= */
+function drawWsb(rows, s){
+  const svg = document.getElementById('chWsb');
+  svg.innerHTML = '';
+  const W = 960, H = 280, L = 58, R = 12, T = 34, B = 34;
+  const pw = W - L - R, ph = H - T - B;
+  const inn = rows.map(r => r.wsb26in + r.wsb27in);
+  const out = rows.map(r => r.wsbCost + r.merit);
+  let hi = Math.max(...inn, ...out) * 1.14, lo = 0;
+  const yv = v => T + (hi - v)/(hi - lo)*ph;
+  const n = rows.length, slot = pw/n, xv = i => L + i*slot + slot/2;
+  // 2027 band
+  const j27 = M.months.findIndex(mo => mo.y === 2027), j28 = M.months.findIndex(mo => mo.y === 2028);
+  el('rect', {x: L + j27*slot, y: T, width: (j28-j27)*slot, height: ph, fill: 'var(--pine-soft)'}, svg);
+  const bt = el('text', {x: L + j27*slot + 8, y: T+14, class: 'ann'}, svg);
+  bt.textContent = '2027 — both add-ons pay at once';
+  for (let g = 0; g <= hi; g += 10000){
+    const y = yv(g);
+    el('line', {x1: L, x2: W-R, y1: y, y2: y, stroke: 'var(--grid)', 'stroke-width': 1}, svg);
+    if (g % 20000 === 0){
+      const t = el('text', {x: L-8, y: y+3.5, 'text-anchor': 'end', class: 'axis-t tn'}, svg);
+      t.textContent = g === 0 ? '0' : fmtK(g);
+    }
+  }
+  // stepped lines
+  const path = arr => arr.map((v, i) =>
+    (i ? `L${L+i*slot},${yv(v)} ` : `M${L},${yv(v)} `) + `L${L+(i+1)*slot},${yv(v)}`).join(' ');
+  el('path', {d: path(out), fill: 'none', stroke: 'var(--s2)', 'stroke-width': 2, 'stroke-linejoin': 'round'}, svg);
+  el('path', {d: path(inn), fill: 'none', stroke: 'var(--s1)', 'stroke-width': 2, 'stroke-linejoin': 'round'}, svg);
+  // end labels
+  const e1 = el('text', {x: W-R, y: yv(inn[n-1]) - 7, 'text-anchor': 'end', class: 'axis-t tn', style: 'font-weight:700; fill:var(--ink)'}, svg);
+  e1.textContent = 'In ' + fmtK(inn[n-1]) + '/mo';
+  const e2 = el('text', {x: W-R, y: yv(out[n-1]) + 15, 'text-anchor': 'end', class: 'axis-t tn', style: 'font-weight:700; fill:var(--ink)'}, svg);
+  e2.textContent = 'Out ' + fmtK(out[n-1]) + '/mo';
+  // x labels
+  M.months.forEach((mo, i) => {
+    if (mo.m === 1 || i === 0){
+      const t = el('text', {x: xv(i), y: H-14, 'text-anchor': 'middle', class: 'axis-t'}, svg);
+      t.textContent = mo.label;
+    }
+  });
+  // hover
+  const hit = el('rect', {x: L, y: T, width: pw, height: ph, fill: 'transparent'}, svg);
+  hit.addEventListener('mousemove', ev => {
+    const box = svg.getBoundingClientRect();
+    const px = (ev.clientX - box.left)/box.width * W;
+    const i = Math.max(0, Math.min(n-1, Math.floor((px - L)/slot)));
+    showTip(`<b>${M.months[i].label}</b><br>` +
+      `<div class="tr"><span>State add-ons in</span><span>${fmtF(inn[i])}</span></div>` +
+      `<div class="tr"><span>Wage cost out</span><span>${fmtF(out[i])}</span></div>` +
+      `<div class="tr"><span><b>Net</b></span><span><b>${fmtF(inn[i]-out[i])}</b></span></div>`, ev);
+  });
+  hit.addEventListener('mouseleave', hideTip);
+}
+
+/* ================= options grid ================= */
+function drawGrid(){
+  const pkgs = [['A', 'A — agency out + layaway'], ['B', 'B — A + Clinical Mgr bench'], ['D', 'D — B + on-site HR out'], ['C', 'C — full right-size']];
+  [[2027, 'og27'], [2028, 'og28']].forEach(([yr, id]) => {
+    const t = document.getElementById(id);
+    let h = '<tr><th class="rowh"></th><th>2% merit</th><th>3% merit</th><th>4% merit</th></tr>';
+    pkgs.forEach(([p, label]) => {
+      h += `<tr><th class="rowh">${label}</th>`;
+      [2, 3, 4].forEach(m => {
+        const v = gridCell(yr, m, p, S);
+        const sel = (S.merit === m &&
+          ((p === 'A' && S.agency && !S.cm && !S.rs && !S.hr) ||
+           (p === 'B' && S.agency && S.cm && !S.rs && !S.hr) ||
+           (p === 'D' && S.agency && S.cm && S.hr && !S.rs) ||
+           (p === 'C' && S.rs && !S.hr)));
+        h += `<td><button data-y="${yr}" data-p="${p}" data-m="${m}" class="${sel ? 'sel' : ''}"
+              style="background:${v >= 0 ? 'var(--pos-wash)' : 'var(--neg-wash)'}">
+              ${fmtK(v)}<span class="per">${fmtK(v/12)}/mo</span></button></td>`;
+      });
+      h += '</tr>';
+    });
+    t.innerHTML = h;
+    t.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+      S.merit = +b.dataset.m;
+      const p = b.dataset.p;
+      S.rs = p === 'C';
+      S.agency = (p === 'A' || p === 'B' || p === 'D');
+      S.cm = (p === 'B' || p === 'D');
+      S.hr = (p === 'D');
+      render();
+    }));
+  });
+}
+
+/* ================= waterfall ================= */
+function drawWf(s){
+  const svg = document.getElementById('chWf');
+  svg.innerHTML = '';
+  const w27 = M.w27[s.wsb];
+  const days = M.ratedays*12;
+  const wage27 = M.meritA[s.merit] + M.wsb27c[s.merit];
+  const steps = [
+    ['Baseline ops', M.baseline*12, 'abs'],
+    ['Rate: durable margin', M.durable*days],
+    ['WSB add-ons net of raises', (M.wsb26 + w27)*days - wage27],
+    ['Surcharge net', M.surchOff*days - M.surchDelta*12 + (s.layaway ? 59000 : 0)],
+    ['AL rent increase', M.alrent*12],
+    ['Parity + compression', -((s.parity ? M.parityY : 0) + (s.floor ? M.floorY[2027] : 0))],
+    ['Acuity + cost actions', (s.acuity ? M.acuityYr : 0) + (s.hr ? M.hrY : 0) + (s.rs ? M.rsY : (s.agency ? M.agencyY : 0) + (s.cm ? M.cmY : 0))],
+    ['Operating cash 2027', null, 'sub'],
+    ['Debt service', -M.dsMo*12],
+    ['Net 2027', null, 'sub']
+  ];
+  let run = 0; const bars = [];
+  steps.forEach(st => {
+    if (st[2] === 'abs'){ run = st[1]; bars.push({l: st[0], from: 0, to: run, kind: 'sub'}); }
+    else if (st[2] === 'sub'){ bars.push({l: st[0], from: 0, to: run, kind: 'sub'}); }
+    else { bars.push({l: st[0], from: run, to: run + st[1], kind: st[1] >= 0 ? 'up' : 'dn'}); run += st[1]; }
+  });
+  const W = 960, H = 320, L = 58, R = 12, T = 18, B = 78;
+  const pw = W - L - R, ph = H - T - B;
+  let lo = 0, hi = 0;
+  bars.forEach(b => { lo = Math.min(lo, b.from, b.to); hi = Math.max(hi, b.from, b.to); });
+  hi *= 1.1; lo = lo < 0 ? lo*1.15 : 0;
+  const yv = v => T + (hi - v)/(hi - lo)*ph;
+  const n = bars.length, slot = pw/n, bw = Math.min(52, slot - 14);
+  const y0 = yv(0);
+  el('line', {x1: L, x2: W-R, y1: y0, y2: y0, stroke: 'var(--axis)', 'stroke-width': 1}, svg);
+  const zt = el('text', {x: L-8, y: y0+3.5, 'text-anchor': 'end', class: 'axis-t tn'}, svg); zt.textContent = '0';
+  bars.forEach((b, i) => {
+    const x = L + i*slot + (slot-bw)/2;
+    const yA = yv(Math.max(b.from, b.to)), yB = yv(Math.min(b.from, b.to));
+    const fill = b.kind === 'sub' ? 'var(--muted)' : b.kind === 'up' ? 'var(--pos)' : 'var(--neg)';
+    el('rect', {x, y: yA, width: bw, height: Math.max(yB-yA, 1.5), rx: 3, fill, opacity: b.kind === 'sub' ? 0.55 : 1}, svg);
+    if (i < n-1) el('line', {x1: x+bw, x2: L + (i+1)*slot + (slot-bw)/2, y1: yv(b.to), y2: yv(b.to), stroke: 'var(--axis)', 'stroke-width': 1, 'stroke-dasharray': '0'}, svg);
+    const val = b.kind === 'sub' ? b.to : b.to - b.from;
+    const vt = el('text', {x: x+bw/2, y: yA-6, 'text-anchor': 'middle', class: 'axis-t tn', style: 'font-weight:700; fill:var(--ink)'}, svg);
+    vt.textContent = b.kind === 'sub' ? fmtK(val)
+                   : (val >= 0 ? '+' : '−') + fmtK(Math.abs(val));
+    // wrapped label
+    const words = b.l.split(' ');
+    let lines = ['']; words.forEach(wd => {
+      if ((lines[lines.length-1] + ' ' + wd).trim().length > 12) lines.push(wd);
+      else lines[lines.length-1] = (lines[lines.length-1] + ' ' + wd).trim();
+    });
+    lines.slice(0, 3).forEach((ln, k) => {
+      const t = el('text', {x: x+bw/2, y: H-B+16+k*12, 'text-anchor': 'middle', class: 'axis-t'}, svg);
+      t.textContent = ln;
+    });
+    const hit = el('rect', {x: L+i*slot, y: T, width: slot, height: ph+B-14, fill: 'transparent'}, svg);
+    hit.addEventListener('mousemove', ev => showTip(`<b>${b.l}</b><br><div class="tr"><span>${b.kind === 'sub' ? 'Level' : 'Change'}</span><span>${fmtF(b.kind === 'sub' ? b.to : b.to - b.from)}</span></div>`, ev));
+    hit.addEventListener('mouseleave', hideTip);
+  });
+}
+
+/* ================= rate stack ================= */
+function drawStack(){
+  const svg = document.getElementById('chStack');
+  svg.innerHTML = '';
+  const W = 960, H = 150, L = 20, R = 20, T = 46, bh = 44;
+  const parts = [
+    ['Durable margin', 2.10, 'var(--s1)'],
+    ['WSB wage add-on', 13.61, 'var(--s2)'],
+    ['Surcharge offset', 10.16, 'var(--s3)']
+  ];
+  const total = 25.88, pw = W - L - R;
+  const head = el('text', {x: L, y: 22, class: 'ann', style: 'font-size:13px; font-weight:700; fill:var(--ink)'}, svg);
+  head.textContent = '2026 rate increase: +$25.88 per resident day';
+  let x = L;
+  parts.forEach(([lab, v, c], i) => {
+    const w = v/total*pw - (i < parts.length-1 ? 2 : 0);
+    el('rect', {x, y: T, width: w, height: bh, rx: 4, fill: c}, svg);
+    const inside = w > 150;
+    const t = el('text', {x: inside ? x+10 : x + w/2, y: T + bh/2 - (inside ? -4 : -4), class: 'axis-t', style: `font-weight:700; font-size:12px; fill:${inside ? '#ffffff' : 'var(--ink)'}`}, svg);
+    if (inside){ t.textContent = `${lab} · $${v.toFixed(2)}`; }
+    else {
+      t.setAttribute('x', x + w/2); t.setAttribute('text-anchor', 'middle');
+      t.setAttribute('y', T - 8); t.setAttribute('style', 'font-weight:700; font-size:12px; fill:var(--ink)');
+      t.textContent = `$${v.toFixed(2)}`;
+    }
+    const hit = el('rect', {x, y: T, width: w, height: bh, fill: 'transparent'}, svg);
+    const note = i === 0 ? 'The only piece the campus keeps as margin.'
+      : i === 1 ? 'Arrives with the mandated raises attached — margin-neutral by design.'
+      : 'Arrives with the $383.5K/yr bed-tax bill attached.';
+    hit.addEventListener('mousemove', ev => showTip(`<b>${lab}</b> — $${v.toFixed(2)}/day<br>${note}`, ev));
+    hit.addEventListener('mouseleave', hideTip);
+    x += w + 2;
+  });
+  const foot = el('text', {x: L, y: T + bh + 26, class: 'ann'}, svg);
+  foot.textContent = 'At ~1,240 rate-paid days/month, only ~$2,600 of the ~$32,100 monthly uplift is money the campus keeps.';
+}
+
+/* ================= monthly table ================= */
+function drawTable(rows){
+  const t = document.getElementById('tblMonthly');
+  let h = '<tr><th>Month</th><th>Revenue Δ</th><th>Wages Δ</th><th>Surcharge Δ</th><th>Cuts</th><th>Debt svc</th><th>Net</th><th>Cumulative</th></tr>';
+  rows.forEach((r, i) => {
+    const c = v => `<td class="${v < 0 ? 'neg' : ''}">${fmtF(v)}</td>`;
+    h += `<tr><td>${M.months[i].label}</td>${c(r.rev)}${c(r.wages)}${c(r.surch)}${c(r.cuts)}${c(r.ds)}${c(r.net)}${c(r.cum)}</tr>`;
+  });
+  t.innerHTML = h;
+}
+
+/* ================= assumptions register ================= */
+function drawReg(){
+  const rows = [
+    ['AL rent increase', '+$11,570/mo', 'realized', 'Effective 7/1/26 — measured from MatrixCare Jun vs Jul actuals (+15.4% PP/day on identical days)'],
+    ['2026 Medicaid rate stack', '+$25.88/day', 'realized', 'Published DHS notice, retro to 1/1/26; retro receivable ~$223K lands as claims reprocess'],
+    ['Private-pay retro rebill', '$59.2K billed · 50% collected', 'decided', 'State requires rebilling; collections spread over Q4 ’26; remainder written off'],
+    ['Merit raise', '3% · retro to anniversaries', 'pending', 'Working assumption, very likely but undecided — backpay ~$17–20K would pay with the 9/10 implementation; run-rate $115K/yr loaded'],
+    ['WSB minimums from 9/10/26', 'CNA $22.50 · TMA $23.50 · LPN $27 · other $19', 'decided', 'Dietary Option A; $62K stub Sep–Dec at 3% merit'],
+    ['AL parity bump', '$1/hr · $22.9K/yr', 'pending', 'Very likely — modeled on. Keeps the campus from going two-tier; funded by the rent increase'],
+    ['Surcharge catch-up', '−$16.7K/mo + ~$134K retro', 'decided', 'Facility has been billed the old $15,248/mo all year; catch-up assumed Nov ’26'],
+    ['Bed layaway — 10 beds', '+$59K/yr', 'pending', 'Committed direction; letter must reach MDH ~9/2 for 11/1 effective; census supports up to 13'],
+    ['2027 WSB reimbursement', '$21.93/day as filed · $7.40 floored', 'pending', 'Application completed 8/25; the Apply-Floor question is worth ~$216K/yr — get DHS position in writing'],
+    ['Surcharge offset rebasing 10/1/26', '$19.02/day continues', 'pending', 'Confirm with DHS that the offset folds into external fixed'],
+    ['MDS acuity recapture', '~$45K/yr', 'pending', 'Review being scheduled; lever stays off until validated'],
+    ['Cost packages', '$125K / $176K / $390K', 'pending', 'None committed — the grid above shows what each combination buys'],
+    ['On-site HR elimination', '$81.8K/yr loaded', 'pending', 'Sole on-site HR role — gross $66.3K + employer costs $15.5K from 10 weeks of actual payroll, annualized; assumes the outsourced HR partner absorbs the function'],
+    ['Debt service', '$52.2K/mo', 'decided', 'Full payments assumed — senior $38.3K + subordinated interest $10.5K + LOC $3.4K']
+  ];
+  const t = document.getElementById('tblReg');
+  let h = '<tr><th>Item</th><th>Value</th><th>Status</th><th>Notes</th></tr>';
+  rows.forEach(([a, b, c, d]) => {
+    h += `<tr><td style="font-weight:600">${a}</td><td class="val">${b}</td><td><span class="chip ${c}">${c.toUpperCase()}</span></td><td style="color:var(--ink2)">${d}</td></tr>`;
+  });
+  t.innerHTML = h;
+}
+
+/* ================= render ================= */
+function render(){
+  // exclusivity: right-size supersedes agency + CM
+  const swRS = document.getElementById('swRS');
+  ['swAgency', 'swCM'].forEach(id => {
+    const b = document.getElementById(id);
+    if (S.rs) b.setAttribute('disabled', ''); else b.removeAttribute('disabled');
+  });
+  // sync switch visuals
+  const map = {swLayaway: 'layaway', swParity: 'parity', swAgency: 'agency', swCM: 'cm', swRS: 'rs', swHR: 'hr',
+               swOnetime: 'onetime', swFloor: 'floor', swAcuity: 'acuity', swDebt: 'debt'};
+  for (const id in map){
+    const b = document.getElementById(id);
+    b.classList.toggle('on', S[map[id]]);
+    b.setAttribute('aria-pressed', String(S[map[id]]));
+  }
+  document.querySelectorAll('#segMerit button').forEach(b => b.classList.toggle('on', +b.dataset.v === S.merit));
+  document.querySelectorAll('#segWsb button').forEach(b => b.classList.toggle('on', +b.dataset.v === S.wsb));
+
+  const {rows, yr} = computeAll(S);
+  const set = (id, v) => {
+    const e = document.getElementById(id);
+    e.textContent = fmtK(v);
+    e.classList.toggle('up', v >= 0); e.classList.toggle('dn', v < 0);
+  };
+  set('k26', yr[2026]); set('k27', yr[2027]); set('k28', yr[2028]);
+  const req = Math.max(0, -yr[2028]);
+  const kq = document.getElementById('kreq');
+  kq.textContent = req === 0 ? 'None' : fmtK(req) + '/yr';
+  kq.classList.toggle('up', req === 0); kq.classList.toggle('dn', req > 0);
+  document.getElementById('kreqm').textContent = req === 0
+    ? 'these settings break even in 2028'
+    : '≈ ' + fmtK(req/12) + ' per month, to break even in 2028';
+
+  drawMonthly(rows); drawCum(rows); drawWsb(rows, S); drawGrid(); drawWf(S); drawStack(); drawTable(rows);
+}
+
+/* ================= wire controls ================= */
+document.querySelectorAll('#segMerit button').forEach(b =>
+  b.addEventListener('click', () => { S.merit = +b.dataset.v; render(); }));
+document.querySelectorAll('#segWsb button').forEach(b =>
+  b.addEventListener('click', () => { S.wsb = +b.dataset.v; render(); }));
+const swMap = {swLayaway: 'layaway', swParity: 'parity', swAgency: 'agency', swCM: 'cm', swRS: 'rs', swHR: 'hr',
+               swOnetime: 'onetime', swFloor: 'floor', swAcuity: 'acuity', swDebt: 'debt'};
+for (const id in swMap){
+  document.getElementById(id).addEventListener('click', function(){
+    if (this.hasAttribute('disabled')) return;
+    S[swMap[id]] = !S[swMap[id]];
+    if (id === 'swRS' && S.rs){ S.agency = false; S.cm = false; }
+    render();
+  });
+}
+drawReg();
+render();
+addEventListener('resize', () => render());
+</script>
+
+</body>
+</html>
