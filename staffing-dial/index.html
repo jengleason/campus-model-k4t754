@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow">
+<title>Mora Staffing Dial</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&display=swap">
+<style>
+:root{color-scheme:light;
+  --paper:#f4f6f3;--panel:#fff;--ink:#182226;--muted:#566369;--rule:#d5dbd6;--rule-soft:#e6eae6;
+  --accent:#0f6b5f;--accent-ink:#0b5249;--accent-soft:#dcebe7;
+  --good:#1f7a3e;--warn:#a86a12;--crit:#b23a2b;--good-soft:#e1f0e6;--warn-soft:#f6ead6;--crit-soft:#f5e1de;
+  --shadow:0 1px 2px rgba(24,34,38,.06),0 6px 20px rgba(24,34,38,.06)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
+  --paper:#141a1b;--panel:#1b2324;--ink:#e8ede9;--muted:#9aa8a4;--rule:#2c3739;--rule-soft:#232d2f;
+  --accent:#4fb3a3;--accent-ink:#8fd6c9;--accent-soft:#1d3330;
+  --good:#5cc27f;--warn:#e0a94a;--crit:#e07a6c;--good-soft:#1c3324;--warn-soft:#3a2d15;--crit-soft:#3c2220;--shadow:none}}
+:root[data-theme="dark"]{color-scheme:dark;
+  --paper:#141a1b;--panel:#1b2324;--ink:#e8ede9;--muted:#9aa8a4;--rule:#2c3739;--rule-soft:#232d2f;
+  --accent:#4fb3a3;--accent-ink:#8fd6c9;--accent-soft:#1d3330;
+  --good:#5cc27f;--warn:#e0a94a;--crit:#e07a6c;--good-soft:#1c3324;--warn-soft:#3a2d15;--crit-soft:#3c2220;--shadow:none}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:"Source Sans 3","Segoe UI",system-ui,sans-serif;font-size:17px;line-height:1.5}
+h1,h2,h3,.eyebrow,th,.lab,.tag,button{font-family:"Archivo","Helvetica Neue",Arial,sans-serif}
+h1{font-size:2.2rem;line-height:1.1;font-weight:700;margin:0 0 .4rem;letter-spacing:-.01em;text-wrap:balance}
+h2{font-size:1.35rem;font-weight:700;margin:0 0 .4rem}
+h3{font-size:1.05rem;font-weight:600;margin:0}
+p{margin:.5rem 0;max-width:66ch}
+.wrap{max-width:1120px;margin:0 auto;padding:0 24px 80px}
+header{padding:40px 0 22px;border-bottom:1px solid var(--rule)}
+.eyebrow{font-size:.72rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--accent-ink)}
+.lede{font-size:1.08rem;color:var(--muted)}
+.sticky{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--paper) 94%,transparent);backdrop-filter:blur(6px);border-bottom:1px solid var(--rule);margin:0 -24px;padding:12px 24px}
+.dial-top{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.dial-top label{font-family:"Archivo",sans-serif;font-weight:600}
+.dial-top input[type=range]{flex:1;min-width:220px;accent-color:var(--accent)}
+.cv{font-size:2.2rem;font-weight:600;min-width:3ch;text-align:right;line-height:1}
+.cv small{font-size:.85rem;color:var(--muted);font-weight:400;margin-left:6px}
+.kpis{display:flex;gap:18px;flex-wrap:wrap;margin-top:8px;font-size:.92rem;color:var(--muted)}
+.kpis b{color:var(--ink);font-variant-numeric:tabular-nums}
+section{padding:30px 0 8px;border-bottom:1px solid var(--rule-soft)}
+section:last-of-type{border-bottom:0}
+.dept{background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:14px 16px;box-shadow:var(--shadow);margin:12px 0;display:grid;grid-template-columns:1.1fr 1.3fr 1fr;gap:14px;align-items:start}
+@media (max-width:900px){.dept{grid-template-columns:1fr}}
+.dept h3{margin-bottom:2px}
+.dept .what{font-size:.9rem;color:var(--muted)}
+.levers{display:flex;flex-direction:column;gap:8px}
+.lever{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;font-size:.92rem}
+.lever .lab{font-size:.78rem;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.lever .ref{font-size:.82rem;color:var(--muted)}
+.lever input{width:92px;padding:6px 8px;border:1px solid var(--rule);border-radius:6px;background:var(--paper);color:var(--ink);font:inherit;font-variant-numeric:tabular-nums;text-align:right}
+.lever input.changed{border-color:var(--warn);background:var(--warn-soft)}
+.tag{display:inline-block;font-size:.66rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink);margin-left:6px;vertical-align:middle}
+.out{font-variant-numeric:tabular-nums}
+.out .big{font-size:1.7rem;font-weight:600;line-height:1.1}
+.out .row{display:flex;justify-content:space-between;gap:10px;font-size:.92rem;padding:3px 0;border-bottom:1px solid var(--rule-soft)}
+.out .row:last-child{border-bottom:0}
+.d{font-weight:600}.d.up{color:var(--crit)}.d.down{color:var(--good)}.d.flat{color:var(--muted)}
+.shifts{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap}
+.slot{border:1px solid var(--rule);border-radius:6px;padding:6px 10px;min-width:72px;background:var(--paper)}
+.slot .sh{font-size:.66rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.slot .n{font-size:1.25rem;font-weight:600}
+table{border-collapse:collapse;width:100%;font-size:.93rem;font-variant-numeric:tabular-nums;margin:10px 0}
+th{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:left;font-weight:600;padding:8px 10px;border-bottom:1px solid var(--rule)}
+td{padding:7px 10px;border-bottom:1px solid var(--rule-soft)}
+td.n,th.n{text-align:right}
+tr.total td{font-weight:600;border-top:1px solid var(--rule)}
+.table-wrap{overflow-x:auto}
+button.reset{border:1px solid var(--rule);background:var(--panel);color:var(--accent-ink);padding:7px 14px;border-radius:999px;font-weight:600;cursor:pointer}
+.note{background:var(--accent-soft);border-left:3px solid var(--accent);padding:12px 16px;border-radius:0 6px 6px 0;margin:14px 0;font-size:.98rem}
+.mini{font-size:.86rem;color:var(--muted)}
+.foot{font-size:.85rem;color:var(--muted);margin-top:34px;border-top:1px solid var(--rule);padding-top:12px}
+</style>
+
+</head><body style="margin:0">
+<div class="wrap">
+<header>
+  <div class="eyebrow">St. Clare Living Community of Mora · staffing targets by department</div>
+  <h1>The census dial, with the rates behind it</h1>
+  <p class="lede">Drag the census. Each department has a rate that turns residents into hours: minutes per meal, hours per resident day, or a fixed number of people. Every rate box shows the <b>current target</b> and, where one exists, the <b>industry standard</b> and <b>today's actual</b>. Change a rate and the whole board recalculates; an amber box means you have moved off the target. Your changes stay in this browser until you reset them.</p>
+</header>
+
+<div class="sticky">
+  <div class="dial-top">
+    <label for="census">SNF census</label>
+    <input type="range" id="census" min="38" max="55" value="48" step="1">
+    <div class="cv"><span id="cv">48</span><small>of 55 operated beds</small></div>
+    <button class="reset" id="reset">Reset every rate to target</button>
+  </div>
+  <div class="kpis">
+    <span>Nursing hours per resident day (PBJ basis) <b id="k-hprd">–</b> · peer median 4.04</span>
+    <span>Total SNF worked hours per day <b id="k-hrs">–</b> · today ≈ 373</span>
+    <span>Total SNF worked FTE <b id="k-fte">–</b> · today ≈ 65</span>
+    <span>Change vs today <b id="k-dollar">–</b> per year, loaded</span>
+  </div>
+</div>
+
+<section>
+  <h2>How to read this</h2>
+  <p><b>Hours per day are averaged over all seven days.</b> A 40-hour-a-week position shows as 5.7 hours a day (40 ÷ 7). One 8-hour shift every day of the week is 8 hours a day and 1.4 FTE. <b>FTE = hours per day × 7 ÷ 40.</b> "Today" is worked hours from the punch clock, July 5 to August 29, 2026, so PTO is excluded and salaried managers who punch short days look smaller than the salary they are paid (a salaried director who punches 26 hours a week and takes leave in the window shows as 3.7 hours a day; the payroll still pays 40). Dollar figures use January 2027 wage rates with a 19% benefit load, and agency at its invoice rate.</p>
+</section>
+
+<section id="board"></section>
+
+<section>
+  <h2>The whole board at this census</h2>
+  <div class="table-wrap"><table id="tbl"><thead><tr><th>Department</th><th>Rate in use</th><th class="n">Target hrs/day</th><th class="n">Target FTE</th><th class="n">Today hrs/day</th><th class="n">Change hrs/day</th><th class="n">Change $/yr</th></tr></thead><tbody></tbody></table></div>
+  <p class="mini">Change $/yr = (target − today) hours per day × 365 × the department's loaded hourly cost. Negative is a saving. This board excludes the assisted living, therapy, and management-structure decisions (Clinical Manager bench, HR) that live on the Savings Ladder.</p>
+</section>
+
+<div class="foot">Sources: Detailed Hours through 9.4.26.csv (worked hours Jul 5–Aug 29, 2026) · MatrixCare census (validated through Aug 31; window ADC 47.6) · GrapeTree invoices Jun 21–Aug 8 · Meal Count Sheet 2022–2026 (216 meals/day) · CMS Care Compare rural MN peer set (n = 79) · CLA FY2023 and OSCAR departmental benchmarks · CBDM 5.0 meals per labor hour standard. Companion pages: Mora Staffing Framework and Mora Savings Ladder.</div>
+</div>
+
+<script>
+(function(){
+  // ---- levers: id, label, default (current target), reference text, step, min, max
+  var L=[
+    {id:'aideHPPD',dept:'aides',lab:'Floor aide hours per resident day',def:2.45,ref:'peer median 2.52 (all aides) · today 2.49 with agency',step:0.05,min:1.8,max:3.2},
+    {id:'nightMin',dept:'aides',lab:'Minimum aides on nights',def:2.5,ref:'today 2.7',step:0.5,min:2,max:4},
+    {id:'hydHrs',dept:'hyd',lab:'Hydration aide hours per week',def:34,ref:'today 34 (the hydration aide, 11a–8p)',step:1,min:0,max:40},
+    {id:'licShifts',dept:'lic',lab:'Licensed nurse shifts per day',def:5,ref:'2 day · 2 eve · 1 night · today 6.2 incl. agency',step:0.5,min:3,max:8},
+    {id:'adminFTE',dept:'nadmin',lab:'Nursing admin FTE (DON, ADON/MDS, ICP, scheduler)',def:3.5,ref:'national 0.22 HPRD ≈ 2.3 FTE · today 7.2',step:0.5,min:2,max:8},
+    {id:'actDir',dept:'act',lab:'Wellness director FTE',def:1.0,ref:'today 0.8',step:0.1,min:0,max:1.5},
+    {id:'actHPPD',dept:'act',lab:'Activities aide hours per resident day',def:0.15,ref:'national all-in 0.18 · today 0.74 all-in',step:0.01,min:0,max:0.8},
+    {id:'minMeal',dept:'diet',lab:'Labor minutes per meal',def:14,ref:'CBDM standard 12 · today 16.1',step:0.5,min:9,max:20},
+    {id:'alMeals',dept:'diet',lab:'Assisted living meals per day',def:72,ref:'meal count sheet, Jul–Aug 2026',step:1,min:0,max:120},
+    {id:'hskpHPPD',dept:'hskp',lab:'Housekeeping hours per resident day',def:0.35,ref:'CLA median 0.35 · today 0.36',step:0.01,min:0.15,max:0.7},
+    {id:'laundryFTE',dept:'laundry',lab:'Laundry FTE',def:1.0,ref:'CLA ≈ 0.10 HPRD ≈ 0.85 FTE · today 1.0',step:0.1,min:0,max:2},
+    {id:'ssFTE',dept:'ss',lab:'Social services FTE',def:1.0,ref:'CLA ≈ 0.08 HPRD ≈ 0.65 FTE · today 1.0',step:0.1,min:0,max:2},
+    {id:'plantFTE',dept:'plant',lab:'Plant / maintenance FTE (SNF share)',def:1.5,ref:'CLA ≈ 0.12 HPRD ≈ 1.0 FTE · today 2.1 (+0.7 AL)',step:0.1,min:0,max:4},
+    {id:'adminOffFTE',dept:'admin',lab:'Administration FTE (Administrator, Business Office, HR)',def:2.0,ref:'CLA 0.35 HPRD incl. records/scheduling · today 2.9',step:0.5,min:1,max:5}
+  ];
+  var TODAY={aides:118.5,hyd:4.8,lic:49.9,nadmin:41.0,act:35.3,diet:57.8,hskp:16.9,laundry:5.5,ss:5.5,plant:11.9,admin:16.5};
+  var RATE={aides:24.5*1.19,hyd:24.69*1.19,lic:30.5*1.19,nadmin:39*1.19,act:24*1.19,diet:20.5*1.19,hskp:20.5*1.19,laundry:22*1.19,ss:33.26*1.19,plant:27*1.19,admin:45*1.19};
+  var DEPTS=[
+    {id:'aides',name:'Floor aides (CNA incl. bath duties, TMA, agency CNA)',what:'Variable with census. Hours = rate × residents, split 40% day / 37% evening / 23% night, rounded to half shifts.'},
+    {id:'hyd',name:'Hydration aide',what:'One fixed role. Scheduled by the pass, not the census.'},
+    {id:'lic',name:'Licensed nurses on the floor (LPN, RN, agency)',what:'A licensed nurse every shift and an RN eight consecutive hours every day are required. Each shift is 8 hours; the board adds a half shift above census 52 automatically.'},
+    {id:'nadmin',name:'Nursing administration',what:'Fixed positions: DON, a combined ADON/MDS nurse, part-time infection preventionist, scheduler. Does not move with census.'},
+    {id:'act',name:'Wellness / activities',what:'A director plus aide hours that scale with residents.'},
+    {id:'diet',name:'Kitchen (SNF and AL)',what:'Meals a day = 3 per SNF resident + AL meals. Hours = meals × minutes per meal ÷ 60. The dietary manager is inside these hours.'},
+    {id:'hskp',name:'Housekeeping (SNF)',what:'Scales with occupied rooms.'},
+    {id:'laundry',name:'Laundry',what:'One person covers the building to about census 55.'},
+    {id:'ss',name:'Social services',what:'A full-time qualified social worker is required only above 120 beds.'},
+    {id:'plant',name:'Plant / maintenance (SNF share)',what:'Fixed. The campus also carries 0.7 FTE on the AL side.'},
+    {id:'admin',name:'Administration',what:'Fixed. HR to ProCare takes this from 2.9 to about 2.0.'}
+  ];
+  var vals={};
+  function load(){ try{var s=localStorage.getItem('moraDial'); if(s){var o=JSON.parse(s); L.forEach(function(l){ if(typeof o[l.id]==='number') vals[l.id]=o[l.id]; });} }catch(e){} }
+  function save(){ try{localStorage.setItem('moraDial',JSON.stringify(vals));}catch(e){} }
+  L.forEach(function(l){vals[l.id]=l.def;}); load();
+  function half(x){return Math.round(x*2)/2;}
+  function f1(x){return (Math.round(x*10)/10).toString();}
+  function money(x){var a=Math.abs(x); var s=a>=1000?'$'+Math.round(a/1000)+'K':'$'+Math.round(a); return (x<0?'−':'+')+s;}
+  function delta(t,now,unit){var d=t-now; if(Math.abs(d)<0.3) return '<span class="d flat">≈ same</span>'; return '<span class="d '+(d>0?'up':'down')+'">'+(d>0?'+':'−')+f1(Math.abs(d))+' '+unit+'</span>';}
+  function calc(c){
+    var v=vals, r={};
+    var aideHrs=v.aideHPPD*c, sh=aideHrs/8;
+    var aD=half(sh*0.40), aE=half(sh*0.37), aN=Math.max(v.nightMin,half(sh*0.23));
+    r.aides={hrs:(aD+aE+aN)*8, shifts:[['Day',aD],['Eve',aE],['Night',aN]], rate:v.aideHPPD+' hrs/resident/day'};
+    r.hyd={hrs:v.hydHrs/7, rate:v.hydHrs+' hrs/week'};
+    var ls=v.licShifts+(c>=53?0.5:0);
+    r.lic={hrs:ls*8, shifts:[['Day',c>=53?2.5:Math.max(1,ls-3)],['Eve',Math.min(2,ls-1-(c>=53?2.5:Math.max(1,ls-3)))],['Night',1]], rate:ls+' shifts/day'};
+    r.nadmin={hrs:v.adminFTE*40/7, rate:v.adminFTE+' FTE fixed'};
+    r.act={hrs:v.actDir*40/7+v.actHPPD*c, rate:v.actDir+' director FTE + '+v.actHPPD+' hrs/resident/day'};
+    var meals=3*c+v.alMeals; r.diet={hrs:meals*v.minMeal/60, rate:v.minMeal+' min/meal × '+meals+' meals'};
+    r.hskp={hrs:v.hskpHPPD*c, rate:v.hskpHPPD+' hrs/resident/day'};
+    r.laundry={hrs:v.laundryFTE*40/7, rate:v.laundryFTE+' FTE fixed'};
+    r.ss={hrs:v.ssFTE*40/7, rate:v.ssFTE+' FTE fixed'};
+    r.plant={hrs:v.plantFTE*40/7, rate:v.plantFTE+' FTE fixed'};
+    r.admin={hrs:v.adminOffFTE*40/7, rate:v.adminOffFTE+' FTE fixed'};
+    return r;
+  }
+  function renderBoard(){
+    var el=document.getElementById('board'); el.innerHTML='<h2>Departments and their rates</h2>';
+    DEPTS.forEach(function(d){
+      var box=document.createElement('div'); box.className='dept'; box.id='dept-'+d.id;
+      var levers=L.filter(function(l){return l.dept===d.id;}).map(function(l){
+        return '<div class="lever"><div><div class="lab">'+l.lab+'</div><div class="ref">target '+l.def+' · '+l.ref+'</div></div><input type="number" data-id="'+l.id+'" value="'+vals[l.id]+'" step="'+l.step+'" min="'+l.min+'" max="'+l.max+'" class="'+(vals[l.id]!==l.def?'changed':'')+'"></div>';
+      }).join('');
+      box.innerHTML='<div><h3>'+d.name+'</h3><div class="what">'+d.what+'</div></div><div class="levers">'+levers+'</div><div class="out" id="out-'+d.id+'"></div>';
+      el.appendChild(box);
+    });
+    el.querySelectorAll('input[type=number]').forEach(function(inp){
+      inp.addEventListener('input',function(){var id=inp.dataset.id; var l=L.find(function(x){return x.id===id;}); var n=parseFloat(inp.value); if(isNaN(n)) return; vals[id]=n; inp.classList.toggle('changed',n!==l.def); save(); render();});
+    });
+  }
+  function render(){
+    var c=+document.getElementById('census').value; document.getElementById('cv').textContent=c;
+    var r=calc(c); var tb=document.querySelector('#tbl tbody'); tb.innerHTML=''; var totH=0,totT=0,totD=0;
+    DEPTS.forEach(function(d){
+      var x=r[d.id], now=TODAY[d.id], dh=x.hrs-now, dd=dh*365*RATE[d.id]; totH+=x.hrs; totT+=now; totD+=dd;
+      var out=document.getElementById('out-'+d.id);
+      var shifts=x.shifts?'<div class="shifts">'+x.shifts.map(function(s){return '<div class="slot"><div class="sh">'+s[0]+'</div><div class="n">'+s[1]+'</div></div>';}).join('')+'</div>':'';
+      out.innerHTML='<div class="big">'+f1(x.hrs)+' <span class="mini">hrs/day · '+f1(x.hrs*7/40)+' FTE</span></div>'+shifts+
+        '<div class="row"><span>Today</span><span>'+f1(now)+' hrs/day · '+f1(now*7/40)+' FTE</span></div>'+
+        '<div class="row"><span>Change</span><span>'+delta(x.hrs,now,'hrs/day')+'</span></div>'+
+        '<div class="row"><span>Per year, loaded</span><span class="d '+(dd<-500?'down':dd>500?'up':'flat')+'">'+money(dd)+'</span></div>';
+      tb.innerHTML+='<tr><td>'+d.name+'</td><td class="mini">'+x.rate+'</td><td class="n">'+f1(x.hrs)+'</td><td class="n">'+f1(x.hrs*7/40)+'</td><td class="n">'+f1(now)+'</td><td class="n">'+delta(x.hrs,now,'')+'</td><td class="n">'+money(dd)+'</td></tr>';
+    });
+    tb.innerHTML+='<tr class="total"><td>Total SNF</td><td></td><td class="n">'+f1(totH)+'</td><td class="n">'+f1(totH*7/40)+'</td><td class="n">'+f1(totT)+'</td><td class="n">'+delta(totH,totT,'')+'</td><td class="n">'+money(totD)+'</td></tr>';
+    var nurs=(r.aides.hrs+r.hyd.hrs+r.lic.hrs+r.nadmin.hrs)/c;
+    document.getElementById('k-hprd').textContent=nurs.toFixed(2);
+    document.getElementById('k-hrs').textContent=Math.round(totH);
+    document.getElementById('k-fte').textContent=f1(totH*7/40);
+    var kd=document.getElementById('k-dollar'); kd.textContent=money(totD); kd.style.color=totD<0?'var(--good)':totD>0?'var(--crit)':'var(--muted)';
+  }
+  document.getElementById('census').addEventListener('input',render);
+  document.getElementById('reset').addEventListener('click',function(){L.forEach(function(l){vals[l.id]=l.def;}); save(); renderBoard(); render();});
+  renderBoard(); render();
+})();
+</script>
+
+</body></html>
